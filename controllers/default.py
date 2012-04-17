@@ -451,7 +451,7 @@ def user():
     elif request.args and request.args(0) == "register":
         if not self_registration:
             session.error = T("Registration not permitted")
-            redirect URL(f="index")
+            redirect(URL(f="index"))
         if deployment_settings.get_terms_of_service():
             auth.messages.submit_button = T("I accept. Create my account.")
         else:
