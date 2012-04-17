@@ -674,8 +674,6 @@ def profile():
         localized representation of the name?
     """
 
-    import gluon.contrib.simplejson as json
-
     ptable = s3db.pr_person
     htable = s3db.hrm_bio
     itable = s3db.pr_image

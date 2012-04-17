@@ -439,6 +439,8 @@ def user():
 
     auth.settings.profile_onaccept = user_profile_onaccept
 
+    self_registration = deployment_settings.get_security_self_registration()
+
     login_form = register_form = None
     if request.args and request.args(0) == "login":
         auth.messages.submit_button = T("Login")
@@ -447,6 +449,9 @@ def user():
         if s3.crud.submit_style:
             form[0][-1][1][0]["_class"] = s3.crud.submit_style
     elif request.args and request.args(0) == "register":
+        if not self_registration:
+            session.error = T("Registration not permitted")
+            redirect URL(f="index")
         if deployment_settings.get_terms_of_service():
             auth.messages.submit_button = T("I accept. Create my account.")
         else:
@@ -459,8 +464,11 @@ def user():
         s3_register_validation()
     elif request.args and request.args(0) == "change_password":
         form = auth()
-    else:
-        form = auth()
+    elif request.args and request.args(0) == "profile":
+        if deployment_settings.get_auth_openid():
+            form = DIV(form, openid_login_form.list_user_openids())
+        else:
+            form = auth()
         # add an opt in clause to receive emails depending on the deployment settings
         if deployment_settings.get_auth_opt_in_to_email():
             ptable = s3db.pr_person
@@ -482,13 +490,9 @@ def user():
                                      _class="w2p_fl"),
                                      INPUT(_name=opt_in, _id=field_id, _type="checkbox", _checked=checked),
                                _id=field_id + SQLFORM.ID_ROW_SUFFIX))
-
-
-    if request.args and request.args(0) == "profile" and \
-       deployment_settings.get_auth_openid():
-        form = DIV(form, openid_login_form.list_user_openids())
-
-    self_registration = deployment_settings.get_security_self_registration()
+    else:
+        # Retrieve Password
+        form = auth()
 
     # Use Custom Ext views
     # Best to not use an Ext form for login: can't save username/password in browser & can't hit 'Enter' to submit!
